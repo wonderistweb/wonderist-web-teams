@@ -25,8 +25,11 @@ export default function GroupSection({ group, onEdit }: GroupSectionProps) {
 
   if (group.members.length === 0) return null;
 
-  const itemClass =
-    group.id === "founders" ? "dnd-item-founders" : "dnd-item-standard";
+  // CSS Grid — fixed columns so dnd-kit can calculate stable rect positions
+  const gridClass =
+    group.id === "founders"
+      ? "grid-cols-2"
+      : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
 
   const itemIds = group.members.map((m) => m.id);
 
@@ -46,25 +49,23 @@ export default function GroupSection({ group, onEdit }: GroupSectionProps) {
         </span>
       </div>
 
-      {/* Sortable grid — rectSortingStrategy handles 2D grid reordering */}
       <SortableContext items={itemIds} strategy={rectSortingStrategy}>
         <div
           ref={setNodeRef}
-          className={`flex flex-wrap gap-3 p-4 rounded-2xl transition-colors ${
+          className={`grid ${gridClass} gap-3 p-4 rounded-2xl transition-colors ${
             isOver
               ? "bg-[#226666]/5 ring-2 ring-[#226666]/10"
               : "bg-white/60"
           }`}
         >
           {group.members.map((member, index) => (
-            <div key={member.id} className={itemClass}>
-              <SortableCard
-                member={member}
-                index={index}
-                accent={group.accent}
-                onEdit={() => onEdit(member)}
-              />
-            </div>
+            <SortableCard
+              key={member.id}
+              member={member}
+              index={index}
+              accent={group.accent}
+              onEdit={() => onEdit(member)}
+            />
           ))}
         </div>
       </SortableContext>

@@ -22,11 +22,12 @@ export default function SortableCard({ member, index, accent, onEdit }: Sortable
     isDragging,
   } = useSortable({ id: member.id });
 
+  // Only translate — no scale in the transform so the grid stays stable
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto" as const,
+    position: "relative" as const,
   };
 
   return (

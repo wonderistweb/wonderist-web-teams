@@ -41,28 +41,3 @@ body {
   background: #226666;
   color: white;
 }
-
-/* Drag-and-drop item widths — flex-basis per group at each breakpoint */
-/* Founders: always 2 per row */
-.dnd-item-founders {
-  flex-basis: calc(50% - 6px);
-  min-width: 0;
-}
-
-/* Standard groups: 2 → 3 → 4 per row */
-.dnd-item-standard {
-  flex-basis: calc(50% - 6px);
-  min-width: 0;
-}
-
-@media (min-width: 640px) {
-  .dnd-item-standard {
-    flex-basis: calc(33.333% - 8px);
-  }
-}
-
-@media (min-width: 768px) {
-  .dnd-item-standard {
-    flex-basis: calc(25% - 9px);
-  }
-}

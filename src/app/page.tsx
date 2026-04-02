@@ -8,13 +8,10 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { TeamMember } from "./types";
 import GroupSection from "./components/GroupSection";
-import TeamCard from "./components/TeamCard";
 import EditModal from "./components/EditModal";
 import AddMemberModal from "./components/AddMemberModal";
 import Header from "./components/Header";
@@ -83,7 +80,6 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>("");
-  const [activeId, setActiveId] = useState<string | null>(null);
 
   // Require 5px of movement before starting a drag (allows clicking Edit)
   const sensors = useSensors(
@@ -108,19 +104,11 @@ export default function Home() {
 
   const groups = useMemo(() => categorize(members), [members]);
 
-  const activeMember = activeId ? members.find((m) => m.id === activeId) : null;
-
-  // Find which group an item belongs to
   function findGroup(itemId: string): GroupDef | undefined {
     return groups.find((g) => g.members.some((m) => m.id === itemId));
   }
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -290,7 +278,6 @@ export default function Home() {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
             <div className="space-y-10">
@@ -302,21 +289,6 @@ export default function Home() {
                 />
               ))}
             </div>
-
-            {/* Drag overlay — shows a floating copy of the card being dragged */}
-            <DragOverlay>
-              {activeMember ? (
-                <div className="dnd-item-standard opacity-90 rotate-2 scale-105">
-                  <TeamCard
-                    member={activeMember}
-                    index={0}
-                    isDragging={true}
-                    accent="#226666"
-                    onEdit={() => {}}
-                  />
-                </div>
-              ) : null}
-            </DragOverlay>
           </DndContext>
         )}
       </main>
