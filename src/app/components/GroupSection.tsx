@@ -29,7 +29,7 @@ export default function GroupSection({ group, onEdit }: GroupSectionProps) {
   const gridClass =
     group.id === "founders"
       ? "grid-cols-2"
-      : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
+      : "grid-cols-2 sm:grid-cols-3";
 
   const itemIds = group.members.map((m) => m.id);
 
