@@ -6,13 +6,19 @@ const COLLECTION_ID = process.env.WEBFLOW_COLLECTION_ID!;
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, name, mainHeadshotUrl, hobbyHeadshotUrl } = await req.json();
+    const { id, name, jobTitle, leadership, mainHeadshotUrl, hobbyHeadshotUrl } = await req.json();
 
     const fieldData: Record<string, unknown> = {};
 
     if (name !== undefined) {
       fieldData.name = name;
       fieldData.slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    }
+    if (jobTitle !== undefined) {
+      fieldData["job-title"] = jobTitle;
+    }
+    if (leadership !== undefined) {
+      fieldData["department-head"] = leadership;
     }
     if (mainHeadshotUrl !== undefined) {
       fieldData["main-headshot"] = { url: mainHeadshotUrl };

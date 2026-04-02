@@ -182,7 +182,7 @@ export default function Home() {
 
   const handleUpdateMember = async (
     id: string,
-    updates: { name?: string; mainHeadshotUrl?: string; hobbyHeadshotUrl?: string }
+    updates: { name?: string; jobTitle?: string; leadership?: boolean; mainHeadshotUrl?: string; hobbyHeadshotUrl?: string }
   ) => {
     setSyncStatus("Updating member...");
     try {

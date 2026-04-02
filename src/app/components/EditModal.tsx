@@ -8,13 +8,15 @@ interface EditModalProps {
   onClose: () => void;
   onSave: (
     id: string,
-    updates: { name?: string; mainHeadshotUrl?: string; hobbyHeadshotUrl?: string }
+    updates: { name?: string; jobTitle?: string; leadership?: boolean; mainHeadshotUrl?: string; hobbyHeadshotUrl?: string }
   ) => Promise<void>;
   onRemove: (id: string, name: string) => Promise<void>;
 }
 
 export default function EditModal({ member, onClose, onSave, onRemove }: EditModalProps) {
   const [name, setName] = useState(member.name);
+  const [jobTitle, setJobTitle] = useState(member.jobTitle);
+  const [leadership, setLeadership] = useState(member.leadership);
   const [saving, setSaving] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -60,9 +62,11 @@ export default function EditModal({ member, onClose, onSave, onRemove }: EditMod
 
   const handleSave = async () => {
     setSaving(true);
-    const updates: { name?: string; mainHeadshotUrl?: string; hobbyHeadshotUrl?: string } = {};
+    const updates: { name?: string; jobTitle?: string; leadership?: boolean; mainHeadshotUrl?: string; hobbyHeadshotUrl?: string } = {};
 
     if (name !== member.name) updates.name = name;
+    if (jobTitle !== member.jobTitle) updates.jobTitle = jobTitle;
+    if (leadership !== member.leadership) updates.leadership = leadership;
     if (pendingMainUrl) updates.mainHeadshotUrl = pendingMainUrl;
     if (pendingHobbyUrl) updates.hobbyHeadshotUrl = pendingHobbyUrl;
 
@@ -74,7 +78,7 @@ export default function EditModal({ member, onClose, onSave, onRemove }: EditMod
     onClose();
   };
 
-  const hasChanges = name !== member.name || pendingMainUrl || pendingHobbyUrl;
+  const hasChanges = name !== member.name || jobTitle !== member.jobTitle || leadership !== member.leadership || pendingMainUrl || pendingHobbyUrl;
 
   return (
     <div
@@ -111,6 +115,47 @@ export default function EditModal({ member, onClose, onSave, onRemove }: EditMod
               onChange={(e) => setName(e.target.value)}
               className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-2 text-[#1a1a1a] text-sm focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all"
             />
+          </div>
+
+          {/* Job Title field */}
+          <div>
+            <label className="block text-sm font-semibold text-[#1a1a1a]/70 mb-1.5">
+              Job Title
+            </label>
+            <input
+              type="text"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="e.g. Senior Designer"
+              className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-2 text-[#1a1a1a] text-sm focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all"
+            />
+          </div>
+
+          {/* Leadership toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-sm font-semibold text-[#1a1a1a]/70">
+                Leadership
+              </label>
+              <p className="text-xs text-[#1a1a1a]/40">
+                Moves this person into the Leadership group
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={leadership}
+              onClick={() => setLeadership(!leadership)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                leadership ? "bg-[#DE6D5E]" : "bg-[#d4cfc9]"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                  leadership ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
 
           {/* Photo previews side by side */}
