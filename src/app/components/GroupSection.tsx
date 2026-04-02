@@ -19,14 +19,10 @@ interface GroupSectionProps {
 export default function GroupSection({ group, onEdit }: GroupSectionProps) {
   if (group.members.length === 0) return null;
 
-  // Grid columns per group — fewer columns = larger cards for senior groups
+  // Grid columns per group — Founders is 2-col (larger), everyone else is 4-col
   const gridCols =
     group.id === "founders"
       ? "grid-cols-2"
-      : group.id === "directors"
-      ? "grid-cols-2 sm:grid-cols-4"
-      : group.id === "leadership"
-      ? "grid-cols-2 sm:grid-cols-3"
       : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
 
   return (
