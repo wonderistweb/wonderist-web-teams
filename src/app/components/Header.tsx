@@ -18,40 +18,39 @@ export default function Header({
   memberCount,
 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 bg-[#1a1a1a]/95 backdrop-blur-md border-b border-white/10">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#e5e0db]">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Logo + Title */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 32 32"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+            {/* Wonderist "W" mark */}
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 36 36"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect width="36" height="36" rx="10" fill="#226666" />
+              <text
+                x="18"
+                y="25"
+                textAnchor="middle"
+                fill="white"
+                fontSize="20"
+                fontWeight="bold"
+                fontFamily="system-ui"
               >
-                <rect width="32" height="32" rx="8" fill="#00c4cc" />
-                <text
-                  x="16"
-                  y="22"
-                  textAnchor="middle"
-                  fill="white"
-                  fontSize="18"
-                  fontWeight="bold"
-                  fontFamily="system-ui"
-                >
-                  W
-                </text>
-              </svg>
-              <div>
-                <h1 className="text-base font-semibold text-white leading-tight">
-                  Team Grid Manager
-                </h1>
-                <p className="text-xs text-white/40">
-                  {memberCount} team members
-                </p>
-              </div>
+                W
+              </text>
+            </svg>
+            <div>
+              <h1 className="text-base font-bold text-[#1a1a1a] leading-tight tracking-tight">
+                Team Grid Manager
+              </h1>
+              <p className="text-xs text-[#1a1a1a]/40 font-medium">
+                {memberCount} team members &middot; Wonderist Agency
+              </p>
             </div>
           </div>
 
@@ -59,12 +58,12 @@ export default function Header({
           <div className="flex items-center gap-3">
             {syncStatus && (
               <span
-                className={`text-sm px-3 py-1 rounded-full ${
+                className={`text-sm px-3 py-1 rounded-full font-medium ${
                   syncStatus.includes("Error") || syncStatus.includes("failed")
-                    ? "bg-red-500/20 text-red-300"
+                    ? "bg-red-50 text-red-600 border border-red-200"
                     : syncStatus.includes("success") || syncStatus.includes("updated")
-                    ? "bg-green-500/20 text-green-300"
-                    : "bg-[#00c4cc]/20 text-[#00c4cc]"
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-[#226666]/10 text-[#226666] border border-[#226666]/20"
                 }`}
               >
                 {syncStatus}
@@ -73,7 +72,7 @@ export default function Header({
 
             <button
               onClick={onRefresh}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/60 hover:text-white"
+              className="p-2 rounded-lg hover:bg-[#f0ece8] transition-colors text-[#1a1a1a]/40 hover:text-[#226666]"
               title="Refresh from Webflow"
             >
               <svg
@@ -92,7 +91,7 @@ export default function Header({
               <button
                 onClick={onSync}
                 disabled={syncing}
-                className="px-4 py-2 bg-[#00c4cc] hover:bg-[#00b0b7] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-lg transition-all flex items-center gap-2"
+                className="px-5 py-2 bg-[#226666] hover:bg-[#1a5252] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-lg transition-all flex items-center gap-2 shadow-sm"
               >
                 {syncing ? (
                   <>

@@ -1,16 +1,82 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { TeamMember } from "./types";
-import TeamCard from "./components/TeamCard";
+import GroupSection from "./components/GroupSection";
 import EditModal from "./components/EditModal";
 import Header from "./components/Header";
+
+// Hard-coded group membership by Webflow item ID
+const FOUNDER_IDS = [
+  "650fa2ed4a76afdca2f96363", // Laura Maly
+  "650fa2ed38e964525a55bf89", // Michael Anderson
+];
+
+const DIRECTOR_IDS = [
+  "650fa2ef33137a6ce397bac6", // Ryan Haug
+  "6791cb155577174b16dfd828", // Aidan Breheny
+  "650fa2e9c1a2d98a97a37259", // Forrest Lutz
+  "650fa2ee62e045adba75e05f", // MJ Kovarik
+];
+
+interface GroupDef {
+  id: string;
+  label: string;
+  accent: string;
+  members: TeamMember[];
+}
+
+function categorize(allMembers: TeamMember[]): GroupDef[] {
+  const founderSet = new Set(FOUNDER_IDS);
+  const directorSet = new Set(DIRECTOR_IDS);
+  const placed = new Set<string>();
+
+  const founders: TeamMember[] = [];
+  const directors: TeamMember[] = [];
+  const leadership: TeamMember[] = [];
+  const team: TeamMember[] = [];
+
+  // First pass: founders in their defined order
+  for (const id of FOUNDER_IDS) {
+    const m = allMembers.find((x) => x.id === id);
+    if (m) {
+      founders.push(m);
+      placed.add(id);
+    }
+  }
+
+  // Second pass: directors in their defined order
+  for (const id of DIRECTOR_IDS) {
+    const m = allMembers.find((x) => x.id === id);
+    if (m) {
+      directors.push(m);
+      placed.add(id);
+    }
+  }
+
+  // Third pass: remaining leadership, sorted by order desc
+  const remainingLeadership = allMembers
+    .filter((m) => m.leadership && !placed.has(m.id))
+    .sort((a, b) => b.order - a.order);
+  for (const m of remainingLeadership) {
+    leadership.push(m);
+    placed.add(m.id);
+  }
+
+  // Fourth pass: everyone else, sorted by order desc
+  const rest = allMembers
+    .filter((m) => !placed.has(m.id))
+    .sort((a, b) => b.order - a.order);
+  team.push(...rest);
+
+  return [
+    { id: "founders", label: "Founders", accent: "#226666", members: founders },
+    { id: "directors", label: "Directors", accent: "#509999", members: directors },
+    { id: "leadership", label: "Leadership", accent: "#DE6D5E", members: leadership },
+    { id: "team", label: "Team", accent: "#226666", members: team },
+  ];
+}
 
 export default function Home() {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -19,7 +85,6 @@ export default function Home() {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>("");
-  const originalOrder = useRef<Map<string, number>>(new Map());
 
   const fetchTeam = useCallback(async () => {
     setLoading(true);
@@ -27,9 +92,6 @@ export default function Home() {
       const res = await fetch("/api/team");
       const data = await res.json();
       setMembers(data.items);
-      originalOrder.current = new Map(
-        data.items.map((m: TeamMember) => [m.id, m.order])
-      );
       setHasChanges(false);
     } catch (err) {
       console.error("Failed to fetch team:", err);
@@ -42,19 +104,39 @@ export default function Home() {
     fetchTeam();
   }, [fetchTeam]);
 
+  const groups = useMemo(() => categorize(members), [members]);
+
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
+    const { source, destination } = result;
+    if (!destination) return;
+    // Only allow reorder within the same group
+    if (source.droppableId !== destination.droppableId) return;
 
-    const reordered = Array.from(members);
-    const [moved] = reordered.splice(result.source.index, 1);
-    reordered.splice(result.destination.index, 0, moved);
+    const groupId = source.droppableId;
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) return;
 
-    const updated = reordered.map((m, i) => ({
-      ...m,
-      order: reordered.length - i,
-    }));
+    const reordered = Array.from(group.members);
+    const [moved] = reordered.splice(source.index, 1);
+    reordered.splice(destination.index, 0, moved);
 
-    setMembers(updated);
+    // Rebuild the full members list with new ordering.
+    // We need to assign new global order values so all groups sort correctly.
+    // Founders get highest, then directors, then leadership, then team.
+    const newGroups = groups.map((g) =>
+      g.id === groupId ? { ...g, members: reordered } : g
+    );
+
+    let orderCounter = members.length;
+    const newMembers: TeamMember[] = [];
+    for (const g of newGroups) {
+      for (const m of g.members) {
+        newMembers.push({ ...m, order: orderCounter });
+        orderCounter--;
+      }
+    }
+
+    setMembers(newMembers);
     setHasChanges(true);
   };
 
@@ -62,10 +144,16 @@ export default function Home() {
     setSyncing(true);
     setSyncStatus("Syncing order to Webflow...");
     try {
-      const payload = members.map((m, i) => ({
-        id: m.id,
-        order: members.length - i,
-      }));
+      // Recalculate order based on current position across all groups
+      const ordered = categorize(members);
+      let orderCounter = members.length;
+      const payload: { id: string; order: number }[] = [];
+      for (const g of ordered) {
+        for (const m of g.members) {
+          payload.push({ id: m.id, order: orderCounter });
+          orderCounter--;
+        }
+      }
 
       const res = await fetch("/api/team/sync", {
         method: "POST",
@@ -77,9 +165,6 @@ export default function Home() {
       if (data.success) {
         setSyncStatus("Published successfully!");
         setHasChanges(false);
-        originalOrder.current = new Map(
-          members.map((m, i) => [m.id, members.length - i])
-        );
       } else if (data.warning) {
         setSyncStatus(data.warning);
       } else {
@@ -120,7 +205,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
       <Header
         hasChanges={hasChanges}
         syncing={syncing}
@@ -130,49 +215,25 @@ export default function Home() {
         memberCount={members.length}
       />
 
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-[1440px] mx-auto w-full">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-3 border-[#00c4cc] border-t-transparent rounded-full animate-spin" />
-              <p className="text-white/60">Loading team members...</p>
+              <div className="w-10 h-10 border-3 border-[#226666] border-t-transparent rounded-full animate-spin" />
+              <p className="text-[#226666]/60 font-medium">Loading team members...</p>
             </div>
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="team-grid" direction="horizontal">
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
-                >
-                  {members.map((member, index) => (
-                    <Draggable
-                      key={member.id}
-                      draggableId={member.id}
-                      index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <TeamCard
-                            member={member}
-                            index={index}
-                            isDragging={snapshot.isDragging}
-                            onEdit={() => setEditingMember(member)}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+            <div className="space-y-10">
+              {groups.map((group) => (
+                <GroupSection
+                  key={group.id}
+                  group={group}
+                  onEdit={(m) => setEditingMember(m)}
+                />
+              ))}
+            </div>
           </DragDropContext>
         )}
       </main>

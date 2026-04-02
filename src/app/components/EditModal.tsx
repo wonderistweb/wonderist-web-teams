@@ -21,14 +21,10 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
   const [hobbyPreview, setHobbyPreview] = useState(member.hobbyHeadshot?.url || "");
   const [pendingMainUrl, setPendingMainUrl] = useState<string | undefined>();
   const [pendingHobbyUrl, setPendingHobbyUrl] = useState<string | undefined>();
-  const [showHobby, setShowHobby] = useState(false);
   const mainInputRef = useRef<HTMLInputElement>(null);
   const hobbyInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadImage = async (
-    file: File,
-    type: "main" | "hobby"
-  ) => {
+  const uploadImage = async (file: File, type: "main" | "hobby") => {
     const setUploading = type === "main" ? setUploadingMain : setUploadingHobby;
     setUploading(true);
 
@@ -75,24 +71,23 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
     onClose();
   };
 
-  const hasChanges =
-    name !== member.name || pendingMainUrl || pendingHobbyUrl;
+  const hasChanges = name !== member.name || pendingMainUrl || pendingHobbyUrl;
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
-        className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+        className="bg-white border border-[#e5e0db] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Edit Team Member</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e0db]">
+          <h2 className="text-lg font-bold text-[#1a1a1a]">Edit Team Member</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-white/10 transition-colors text-white/60 hover:text-white"
+            className="p-1 rounded-lg hover:bg-[#f0ece8] transition-colors text-[#1a1a1a]/40 hover:text-[#1a1a1a]"
           >
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M6 18L18 6M6 6l12 12" />
@@ -104,36 +99,33 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
         <div className="p-5 space-y-5">
           {/* Name field */}
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">
+            <label className="block text-sm font-semibold text-[#1a1a1a]/70 mb-1.5">
               Name
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00c4cc] transition-colors"
+              className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-2 text-[#1a1a1a] text-sm focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all"
             />
           </div>
 
           {/* Photo previews side by side */}
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">
+            <label className="block text-sm font-semibold text-[#1a1a1a]/70 mb-1.5">
               Headshots
             </label>
-            <p className="text-xs text-white/40 mb-3">
+            <p className="text-xs text-[#1a1a1a]/40 mb-3">
               These two photos crossfade on the live site. Images are auto-resized to max 1000px wide and converted to .webp.
             </p>
 
             <div className="grid grid-cols-2 gap-3">
               {/* Main headshot */}
               <div>
-                <p className="text-xs text-white/50 mb-1.5 text-center">Main Photo</p>
-                <div
-                  className={`relative aspect-square rounded-lg overflow-hidden bg-[#0f0f0f] border-2 transition-all cursor-pointer ${
-                    !showHobby ? "border-[#00c4cc]" : "border-white/10 hover:border-white/20"
-                  }`}
-                  onClick={() => setShowHobby(false)}
-                >
+                <p className="text-xs font-semibold text-[#226666] mb-1.5 text-center uppercase tracking-wider">
+                  Main Photo
+                </p>
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-[#f0ece8] border-2 border-[#e5e0db]">
                   {mainPreview ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -142,18 +134,18 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-white/20 text-sm">
+                    <div className="flex items-center justify-center h-full text-[#c9c3bc] text-sm">
                       No photo
                     </div>
                   )}
                   {uploadingMain && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <div className="w-8 h-8 border-3 border-[#00c4cc] border-t-transparent rounded-full animate-spin" />
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                      <div className="w-8 h-8 border-3 border-[#226666] border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                   {pendingMainUrl && (
-                    <div className="absolute top-1 right-1 bg-green-500/80 text-white text-[10px] px-1.5 py-0.5 rounded">
-                      New
+                    <div className="absolute top-1.5 right-1.5 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow">
+                      NEW
                     </div>
                   )}
                 </div>
@@ -170,7 +162,7 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
                 <button
                   onClick={() => mainInputRef.current?.click()}
                   disabled={uploadingMain}
-                  className="mt-2 w-full text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  className="mt-2 w-full text-xs bg-[#f7f5f2] hover:bg-[#f0ece8] border border-[#e5e0db] text-[#1a1a1a]/70 hover:text-[#226666] py-1.5 rounded-lg transition-colors font-medium disabled:opacity-50"
                 >
                   {uploadingMain ? "Uploading..." : "Replace Main"}
                 </button>
@@ -178,13 +170,10 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
 
               {/* Hobby headshot */}
               <div>
-                <p className="text-xs text-white/50 mb-1.5 text-center">Hobby Photo</p>
-                <div
-                  className={`relative aspect-square rounded-lg overflow-hidden bg-[#0f0f0f] border-2 transition-all cursor-pointer ${
-                    showHobby ? "border-[#00c4cc]" : "border-white/10 hover:border-white/20"
-                  }`}
-                  onClick={() => setShowHobby(true)}
-                >
+                <p className="text-xs font-semibold text-[#DE6D5E] mb-1.5 text-center uppercase tracking-wider">
+                  Hobby Photo
+                </p>
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-[#f0ece8] border-2 border-[#e5e0db]">
                   {hobbyPreview ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -193,18 +182,18 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-white/20 text-sm">
+                    <div className="flex items-center justify-center h-full text-[#c9c3bc] text-sm">
                       No photo
                     </div>
                   )}
                   {uploadingHobby && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <div className="w-8 h-8 border-3 border-[#00c4cc] border-t-transparent rounded-full animate-spin" />
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                      <div className="w-8 h-8 border-3 border-[#DE6D5E] border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                   {pendingHobbyUrl && (
-                    <div className="absolute top-1 right-1 bg-green-500/80 text-white text-[10px] px-1.5 py-0.5 rounded">
-                      New
+                    <div className="absolute top-1.5 right-1.5 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow">
+                      NEW
                     </div>
                   )}
                 </div>
@@ -221,7 +210,7 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
                 <button
                   onClick={() => hobbyInputRef.current?.click()}
                   disabled={uploadingHobby}
-                  className="mt-2 w-full text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  className="mt-2 w-full text-xs bg-[#f7f5f2] hover:bg-[#f0ece8] border border-[#e5e0db] text-[#1a1a1a]/70 hover:text-[#DE6D5E] py-1.5 rounded-lg transition-colors font-medium disabled:opacity-50"
                 >
                   {uploadingHobby ? "Uploading..." : "Replace Hobby"}
                 </button>
@@ -230,8 +219,8 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
 
             {/* Crossfade preview */}
             {mainPreview && hobbyPreview && (
-              <div className="mt-3 p-3 bg-[#0f0f0f] rounded-lg border border-white/5">
-                <p className="text-xs text-white/40 mb-2 text-center">
+              <div className="mt-3 p-3 bg-[#f7f5f2] rounded-xl border border-[#e5e0db]">
+                <p className="text-xs text-[#1a1a1a]/40 mb-2 text-center font-medium">
                   Live Crossfade Preview
                 </p>
                 <CrossfadePreview main={mainPreview} hobby={hobbyPreview} />
@@ -241,17 +230,17 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/10">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#e5e0db] bg-[#f7f5f2]/50">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm text-[#1a1a1a]/50 hover:text-[#1a1a1a] hover:bg-[#f0ece8] rounded-lg transition-colors font-medium"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={!hasChanges || saving}
-            className="px-4 py-2 text-sm bg-[#00c4cc] hover:bg-[#00b0b7] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+            className="px-5 py-2 text-sm bg-[#226666] hover:bg-[#1a5252] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm"
           >
             {saving ? (
               <>
@@ -277,7 +266,7 @@ function CrossfadePreview({ main, hobby }: { main: string; hobby: string }) {
   }, []);
 
   return (
-    <div className="relative w-24 h-24 mx-auto rounded-lg overflow-hidden">
+    <div className="relative w-24 h-24 mx-auto rounded-xl overflow-hidden shadow-md border border-[#e5e0db]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={main}
