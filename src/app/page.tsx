@@ -74,7 +74,7 @@ function categorize(allMembers: TeamMember[]): GroupDef[] {
     { id: "founders", label: "Founders", accent: "#226666", members: founders },
     { id: "directors", label: "Directors", accent: "#509999", members: directors },
     { id: "leadership", label: "Leadership", accent: "#DE6D5E", members: leadership },
-    { id: "team", label: "Team", accent: "#226666", members: team },
+    { id: "team", label: "WonderBuds", accent: "#226666", members: team },
   ];
 }
 

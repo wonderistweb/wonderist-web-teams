@@ -20,13 +20,21 @@ export default function TeamCard({
 }: TeamCardProps) {
   const [showHobby, setShowHobby] = useState(false);
 
-  // Crossfade between main and hobby headshot to mimic live site
+  // Crossfade with random initial delay so cards don't all swap at once
   useEffect(() => {
     if (!member.hobbyHeadshot?.url) return;
-    const interval = setInterval(() => {
+    const randomDelay = Math.random() * 3000; // 0–3s random offset
+    let interval: ReturnType<typeof setInterval>;
+    const timeout = setTimeout(() => {
       setShowHobby((prev) => !prev);
-    }, 3000);
-    return () => clearInterval(interval);
+      interval = setInterval(() => {
+        setShowHobby((prev) => !prev);
+      }, 3000);
+    }, randomDelay);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [member.hobbyHeadshot?.url]);
 
   const mainUrl = member.mainHeadshot?.url;

@@ -23,28 +23,14 @@ export default function Header({
         <div className="flex items-center justify-between gap-4">
           {/* Logo + Title */}
           <div className="flex items-center gap-3">
-            {/* Wonderist "W" mark */}
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 36 36"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect width="36" height="36" rx="10" fill="#226666" />
-              <text
-                x="18"
-                y="25"
-                textAnchor="middle"
-                fill="white"
-                fontSize="20"
-                fontWeight="bold"
-                fontFamily="system-ui"
-              >
-                W
-              </text>
-            </svg>
-            <div>
+            {/* Wonderist logo */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/wond-teal.svg"
+              alt="Wonderist Agency"
+              className="h-7 w-auto"
+            />
+            <div className="border-l border-[#e5e0db] pl-3">
               <h1 className="text-base font-bold text-[#1a1a1a] leading-tight tracking-tight">
                 Team Grid Manager
               </h1>

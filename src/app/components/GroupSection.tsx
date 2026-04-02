@@ -19,15 +19,17 @@ interface GroupSectionProps {
 export default function GroupSection({ group, onEdit }: GroupSectionProps) {
   if (group.members.length === 0) return null;
 
-  // Determine grid columns based on group size
+  // Determine grid columns based on group
   const gridCols =
-    group.members.length <= 2
+    group.id === "team"
+      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
+      : group.members.length <= 2
       ? "grid-cols-2 sm:grid-cols-2 max-w-md"
       : group.members.length <= 4
       ? "grid-cols-2 sm:grid-cols-4 max-w-2xl"
       : group.members.length <= 6
       ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-6 max-w-4xl"
-      : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+      : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
 
   return (
     <section>
