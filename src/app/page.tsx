@@ -5,6 +5,7 @@ import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { TeamMember } from "./types";
 import GroupSection from "./components/GroupSection";
 import EditModal from "./components/EditModal";
+import AddMemberModal from "./components/AddMemberModal";
 import Header from "./components/Header";
 
 // Hard-coded group membership by Webflow item ID
@@ -58,7 +59,7 @@ function categorize(allMembers: TeamMember[]): GroupDef[] {
   // Third pass: remaining leadership, sorted by order desc
   const remainingLeadership = allMembers
     .filter((m) => m.leadership && !placed.has(m.id))
-    .sort((a, b) => b.order - a.order);
+    .sort((a, b) => a.order - b.order);
   for (const m of remainingLeadership) {
     leadership.push(m);
     placed.add(m.id);
@@ -67,7 +68,7 @@ function categorize(allMembers: TeamMember[]): GroupDef[] {
   // Fourth pass: everyone else, sorted by order desc
   const rest = allMembers
     .filter((m) => !placed.has(m.id))
-    .sort((a, b) => b.order - a.order);
+    .sort((a, b) => a.order - b.order);
   team.push(...rest);
 
   return [
@@ -83,6 +84,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>("");
 
@@ -127,12 +129,12 @@ export default function Home() {
       g.id === groupId ? { ...g, members: reordered } : g
     );
 
-    let orderCounter = members.length;
+    let orderCounter = 1;
     const newMembers: TeamMember[] = [];
     for (const g of newGroups) {
       for (const m of g.members) {
         newMembers.push({ ...m, order: orderCounter });
-        orderCounter--;
+        orderCounter++;
       }
     }
 
@@ -146,12 +148,12 @@ export default function Home() {
     try {
       // Recalculate order based on current position across all groups
       const ordered = categorize(members);
-      let orderCounter = members.length;
+      let orderCounter = 1;
       const payload: { id: string; order: number }[] = [];
       for (const g of ordered) {
         for (const m of g.members) {
           payload.push({ id: m.id, order: orderCounter });
-          orderCounter--;
+          orderCounter++;
         }
       }
 
@@ -204,6 +206,55 @@ export default function Home() {
     }
   };
 
+  const handleRemoveMember = async (id: string, name: string) => {
+    setSyncStatus(`Removing ${name}...`);
+    try {
+      const res = await fetch("/api/team/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSyncStatus(`${name} unpublished from live site`);
+        await fetchTeam();
+      } else {
+        setSyncStatus(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      setSyncStatus(`Remove failed: ${err}`);
+    } finally {
+      setTimeout(() => setSyncStatus(""), 4000);
+    }
+  };
+
+  const handleAddMember = async (data: {
+    name: string;
+    jobTitle: string;
+    mainHeadshotUrl?: string;
+    hobbyHeadshotUrl?: string;
+  }) => {
+    setSyncStatus(`Adding ${data.name}...`);
+    try {
+      const res = await fetch("/api/team/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setSyncStatus(`${data.name} added and published!`);
+        await fetchTeam();
+      } else {
+        setSyncStatus(`Error: ${result.error}`);
+      }
+    } catch (err) {
+      setSyncStatus(`Add failed: ${err}`);
+    } finally {
+      setTimeout(() => setSyncStatus(""), 4000);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
       <Header
@@ -212,10 +263,11 @@ export default function Home() {
         syncStatus={syncStatus}
         onSync={handleSync}
         onRefresh={fetchTeam}
+        onAddMember={() => setShowAddModal(true)}
         memberCount={members.length}
       />
 
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-[1440px] mx-auto w-full">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-[70rem] mx-auto w-full">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center gap-3">
@@ -243,6 +295,14 @@ export default function Home() {
           member={editingMember}
           onClose={() => setEditingMember(null)}
           onSave={handleUpdateMember}
+          onRemove={handleRemoveMember}
+        />
+      )}
+
+      {showAddModal && (
+        <AddMemberModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={handleAddMember}
         />
       )}
     </div>

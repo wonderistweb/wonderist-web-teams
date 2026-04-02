@@ -48,7 +48,7 @@ export async function GET() {
       offset += limit;
     }
 
-    allItems.sort((a, b) => b.order - a.order);
+    allItems.sort((a, b) => a.order - b.order);
 
     return NextResponse.json({ items: allItems });
   } catch (err) {

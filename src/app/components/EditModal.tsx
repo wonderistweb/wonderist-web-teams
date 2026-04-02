@@ -10,11 +10,14 @@ interface EditModalProps {
     id: string,
     updates: { name?: string; mainHeadshotUrl?: string; hobbyHeadshotUrl?: string }
   ) => Promise<void>;
+  onRemove: (id: string, name: string) => Promise<void>;
 }
 
-export default function EditModal({ member, onClose, onSave }: EditModalProps) {
+export default function EditModal({ member, onClose, onSave, onRemove }: EditModalProps) {
   const [name, setName] = useState(member.name);
   const [saving, setSaving] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [uploadingMain, setUploadingMain] = useState(false);
   const [uploadingHobby, setUploadingHobby] = useState(false);
   const [mainPreview, setMainPreview] = useState(member.mainHeadshot?.url || "");
@@ -230,27 +233,63 @@ export default function EditModal({ member, onClose, onSave }: EditModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#e5e0db] bg-[#f7f5f2]/50">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-[#1a1a1a]/50 hover:text-[#1a1a1a] hover:bg-[#f0ece8] rounded-lg transition-colors font-medium"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            className="px-5 py-2 text-sm bg-[#226666] hover:bg-[#1a5252] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm"
-          >
-            {saving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Saving...
-              </>
+        <div className="flex items-center justify-between px-5 py-4 border-t border-[#e5e0db] bg-[#f7f5f2]/50">
+          {/* Remove / confirm */}
+          <div>
+            {confirmRemove ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-red-600 font-medium">Unpublish from live site?</span>
+                <button
+                  onClick={async () => {
+                    setRemoving(true);
+                    await onRemove(member.id, member.name);
+                    setRemoving(false);
+                    onClose();
+                  }}
+                  disabled={removing}
+                  className="px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors"
+                >
+                  {removing ? "Removing..." : "Yes, remove"}
+                </button>
+                <button
+                  onClick={() => setConfirmRemove(false)}
+                  className="px-3 py-1.5 text-xs text-[#1a1a1a]/50 hover:text-[#1a1a1a] hover:bg-[#f0ece8] rounded-lg transition-colors font-medium"
+                >
+                  No
+                </button>
+              </div>
             ) : (
-              "Save Changes"
+              <button
+                onClick={() => setConfirmRemove(true)}
+                className="px-3 py-1.5 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium"
+              >
+                Remove member
+              </button>
             )}
-          </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-[#1a1a1a]/50 hover:text-[#1a1a1a] hover:bg-[#f0ece8] rounded-lg transition-colors font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!hasChanges || saving}
+              className="px-5 py-2 text-sm bg-[#226666] hover:bg-[#1a5252] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+            >
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ interface HeaderProps {
   syncStatus: string;
   onSync: () => void;
   onRefresh: () => void;
+  onAddMember: () => void;
   memberCount: number;
 }
 
@@ -15,11 +16,12 @@ export default function Header({
   syncStatus,
   onSync,
   onRefresh,
+  onAddMember,
   memberCount,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#e5e0db]">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className="max-w-[70rem] mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Logo + Title */}
           <div className="flex items-center gap-3">
@@ -55,6 +57,16 @@ export default function Header({
                 {syncStatus}
               </span>
             )}
+
+            <button
+              onClick={onAddMember}
+              className="px-3 py-1.5 text-sm border border-[#226666]/30 text-[#226666] hover:bg-[#226666]/5 font-medium rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M12 5v14m-7-7h14" />
+              </svg>
+              Add Member
+            </button>
 
             <button
               onClick={onRefresh}
