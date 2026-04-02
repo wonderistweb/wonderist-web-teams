@@ -1,9 +1,20 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { DragDropContext, DropResult } from "@hello-pangea/dnd";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { TeamMember } from "./types";
 import GroupSection from "./components/GroupSection";
+import TeamCard from "./components/TeamCard";
 import EditModal from "./components/EditModal";
 import AddMemberModal from "./components/AddMemberModal";
 import Header from "./components/Header";
@@ -29,8 +40,6 @@ interface GroupDef {
 }
 
 function categorize(allMembers: TeamMember[]): GroupDef[] {
-  const founderSet = new Set(FOUNDER_IDS);
-  const directorSet = new Set(DIRECTOR_IDS);
   const placed = new Set<string>();
 
   const founders: TeamMember[] = [];
@@ -38,34 +47,21 @@ function categorize(allMembers: TeamMember[]): GroupDef[] {
   const leadership: TeamMember[] = [];
   const team: TeamMember[] = [];
 
-  // First pass: founders in their defined order
   for (const id of FOUNDER_IDS) {
     const m = allMembers.find((x) => x.id === id);
-    if (m) {
-      founders.push(m);
-      placed.add(id);
-    }
+    if (m) { founders.push(m); placed.add(id); }
   }
 
-  // Second pass: directors in their defined order
   for (const id of DIRECTOR_IDS) {
     const m = allMembers.find((x) => x.id === id);
-    if (m) {
-      directors.push(m);
-      placed.add(id);
-    }
+    if (m) { directors.push(m); placed.add(id); }
   }
 
-  // Third pass: remaining leadership, sorted by order desc
   const remainingLeadership = allMembers
     .filter((m) => m.leadership && !placed.has(m.id))
     .sort((a, b) => a.order - b.order);
-  for (const m of remainingLeadership) {
-    leadership.push(m);
-    placed.add(m.id);
-  }
+  for (const m of remainingLeadership) { leadership.push(m); placed.add(m.id); }
 
-  // Fourth pass: everyone else, sorted by order desc
   const rest = allMembers
     .filter((m) => !placed.has(m.id))
     .sort((a, b) => a.order - b.order);
@@ -87,6 +83,12 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>("");
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Require 5px of movement before starting a drag (allows clicking Edit)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const fetchTeam = useCallback(async () => {
     setLoading(true);
@@ -102,31 +104,42 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchTeam();
-  }, [fetchTeam]);
+  useEffect(() => { fetchTeam(); }, [fetchTeam]);
 
   const groups = useMemo(() => categorize(members), [members]);
 
-  const handleDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
-    if (!destination) return;
-    // Only allow reorder within the same group
-    if (source.droppableId !== destination.droppableId) return;
+  const activeMember = activeId ? members.find((m) => m.id === activeId) : null;
 
-    const groupId = source.droppableId;
-    const group = groups.find((g) => g.id === groupId);
-    if (!group) return;
+  // Find which group an item belongs to
+  function findGroup(itemId: string): GroupDef | undefined {
+    return groups.find((g) => g.members.some((m) => m.id === itemId));
+  }
 
-    const reordered = Array.from(group.members);
-    const [moved] = reordered.splice(source.index, 1);
-    reordered.splice(destination.index, 0, moved);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
-    // Rebuild the full members list with new ordering.
-    // We need to assign new global order values so all groups sort correctly.
-    // Founders get highest, then directors, then leadership, then team.
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeGroup = findGroup(active.id as string);
+    const overGroup = findGroup(over.id as string);
+
+    // Only reorder within the same group
+    if (!activeGroup || !overGroup || activeGroup.id !== overGroup.id) return;
+
+    const oldIndex = activeGroup.members.findIndex((m) => m.id === active.id);
+    const newIndex = activeGroup.members.findIndex((m) => m.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(activeGroup.members, oldIndex, newIndex);
+
+    // Rebuild full members list with new order values
     const newGroups = groups.map((g) =>
-      g.id === groupId ? { ...g, members: reordered } : g
+      g.id === activeGroup.id ? { ...g, members: reordered } : g
     );
 
     let orderCounter = 1;
@@ -146,7 +159,6 @@ export default function Home() {
     setSyncing(true);
     setSyncStatus("Syncing order to Webflow...");
     try {
-      // Recalculate order based on current position across all groups
       const ordered = categorize(members);
       let orderCounter = 1;
       const payload: { id: string; order: number }[] = [];
@@ -191,7 +203,6 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, ...updates }),
       });
-
       const data = await res.json();
       if (data.success) {
         await fetchTeam();
@@ -276,7 +287,12 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
             <div className="space-y-10">
               {groups.map((group) => (
                 <GroupSection
@@ -286,7 +302,22 @@ export default function Home() {
                 />
               ))}
             </div>
-          </DragDropContext>
+
+            {/* Drag overlay — shows a floating copy of the card being dragged */}
+            <DragOverlay>
+              {activeMember ? (
+                <div className="dnd-item-standard opacity-90 rotate-2 scale-105">
+                  <TeamCard
+                    member={activeMember}
+                    index={0}
+                    isDragging={true}
+                    accent="#226666"
+                    onEdit={() => {}}
+                  />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
       </main>
 

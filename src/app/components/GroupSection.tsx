@@ -1,8 +1,12 @@
 "use client";
 
-import { Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  SortableContext,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import { TeamMember } from "../types";
-import TeamCard from "./TeamCard";
+import SortableCard from "./SortableCard";
 
 interface GroupDef {
   id: string;
@@ -17,10 +21,14 @@ interface GroupSectionProps {
 }
 
 export default function GroupSection({ group, onEdit }: GroupSectionProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: group.id });
+
   if (group.members.length === 0) return null;
 
   const itemClass =
     group.id === "founders" ? "dnd-item-founders" : "dnd-item-standard";
+
+  const itemIds = group.members.map((m) => m.id);
 
   return (
     <section>
@@ -38,47 +46,28 @@ export default function GroupSection({ group, onEdit }: GroupSectionProps) {
         </span>
       </div>
 
-      {/* Droppable — default vertical direction works with flex-wrap */}
-      <Droppable droppableId={group.id}>
-        {(provided, snapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className={`flex flex-wrap gap-3 p-4 rounded-2xl transition-colors ${
-              snapshot.isDraggingOver
-                ? "bg-[#226666]/5 ring-2 ring-[#226666]/10"
-                : "bg-white/60"
-            }`}
-          >
-            {group.members.map((member, index) => (
-              <Draggable
-                key={member.id}
-                draggableId={member.id}
+      {/* Sortable grid — rectSortingStrategy handles 2D grid reordering */}
+      <SortableContext items={itemIds} strategy={rectSortingStrategy}>
+        <div
+          ref={setNodeRef}
+          className={`flex flex-wrap gap-3 p-4 rounded-2xl transition-colors ${
+            isOver
+              ? "bg-[#226666]/5 ring-2 ring-[#226666]/10"
+              : "bg-white/60"
+          }`}
+        >
+          {group.members.map((member, index) => (
+            <div key={member.id} className={itemClass}>
+              <SortableCard
+                member={member}
                 index={index}
-              >
-                {(dragProvided, dragSnapshot) => (
-                  <div
-                    ref={dragProvided.innerRef}
-                    {...dragProvided.draggableProps}
-                    {...dragProvided.dragHandleProps}
-                    className={itemClass}
-                    style={dragProvided.draggableProps.style}
-                  >
-                    <TeamCard
-                      member={member}
-                      index={index}
-                      isDragging={dragSnapshot.isDragging}
-                      accent={group.accent}
-                      onEdit={() => onEdit(member)}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+                accent={group.accent}
+                onEdit={() => onEdit(member)}
+              />
+            </div>
+          ))}
+        </div>
+      </SortableContext>
     </section>
   );
 }
