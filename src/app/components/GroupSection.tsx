@@ -19,11 +19,8 @@ interface GroupSectionProps {
 export default function GroupSection({ group, onEdit }: GroupSectionProps) {
   if (group.members.length === 0) return null;
 
-  // Grid columns per group — Founders is 2-col (larger), everyone else is 4-col
-  const gridCols =
-    group.id === "founders"
-      ? "grid-cols-2"
-      : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
+  const itemClass =
+    group.id === "founders" ? "dnd-item-founders" : "dnd-item-standard";
 
   return (
     <section>
@@ -41,13 +38,13 @@ export default function GroupSection({ group, onEdit }: GroupSectionProps) {
         </span>
       </div>
 
-      {/* Droppable grid */}
-      <Droppable droppableId={group.id} direction="horizontal">
+      {/* Droppable — default vertical direction works with flex-wrap */}
+      <Droppable droppableId={group.id}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`grid ${gridCols} gap-3 p-4 rounded-2xl transition-colors ${
+            className={`flex flex-wrap gap-3 p-4 rounded-2xl transition-colors ${
               snapshot.isDraggingOver
                 ? "bg-[#226666]/5 ring-2 ring-[#226666]/10"
                 : "bg-white/60"
@@ -59,16 +56,18 @@ export default function GroupSection({ group, onEdit }: GroupSectionProps) {
                 draggableId={member.id}
                 index={index}
               >
-                {(provided, snapshot) => (
+                {(dragProvided, dragSnapshot) => (
                   <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
+                    ref={dragProvided.innerRef}
+                    {...dragProvided.draggableProps}
+                    {...dragProvided.dragHandleProps}
+                    className={itemClass}
+                    style={dragProvided.draggableProps.style}
                   >
                     <TeamCard
                       member={member}
                       index={index}
-                      isDragging={snapshot.isDragging}
+                      isDragging={dragSnapshot.isDragging}
                       accent={group.accent}
                       onEdit={() => onEdit(member)}
                     />
