@@ -94,9 +94,6 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
                   <div className="font-semibold text-sm text-[#1a1a1a]">
                     {job.name || <span className="text-[#1a1a1a]/30">(Untitled)</span>}
                   </div>
-                  <div className="text-xs text-[#1a1a1a]/40 mt-0.5 font-mono">
-                    /{job.slug}
-                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge job={job} />

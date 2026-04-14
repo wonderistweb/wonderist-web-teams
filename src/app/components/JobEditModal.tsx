@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { JobListing } from "../types";
+import RichTextEditor from "./RichTextEditor";
 
 interface JobEditModalProps {
   job: JobListing;
@@ -189,7 +190,7 @@ export default function JobEditModal({
                   <label className="block text-xs font-semibold text-[#1a1a1a]/70">
                     Active job?
                   </label>
-                  <p className="text-[11px] text-[#1a1a1a]/40 mt-0.5">
+                  <p className="text-[11px] text-[#1a1a1a]/60 mt-0.5">
                     ON = &ldquo;Now Hiring&rdquo; · OFF = &ldquo;Accepting Applications&rdquo;
                   </p>
                 </div>
@@ -218,7 +219,7 @@ export default function JobEditModal({
                   type="url"
                   value={applicationLink}
                   onChange={(e) => setApplicationLink(e.target.value)}
-                  placeholder="Leave blank to use the CRM form"
+                  placeholder="Leave blank to use a CRM ID or Rippling URL"
                   className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-1.5 text-[#1a1a1a] text-sm focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all"
                 />
               </div>
@@ -231,7 +232,7 @@ export default function JobEditModal({
                   type="url"
                   value={ripplingUrl}
                   onChange={(e) => setRipplingUrl(e.target.value)}
-                  placeholder="https://ats.rippling.com/..."
+                  placeholder="Leave blank to use an Application Link or CRM ID"
                   className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-1.5 text-[#1a1a1a] text-sm focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all"
                 />
               </div>
@@ -244,7 +245,7 @@ export default function JobEditModal({
                   type="text"
                   value={crmId}
                   onChange={(e) => setCrmId(e.target.value)}
-                  placeholder="Optional CRM form ID"
+                  placeholder="Leave blank to use an Application Link or Rippling URL"
                   className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-1.5 text-[#1a1a1a] text-sm focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all"
                 />
               </div>
@@ -256,14 +257,14 @@ export default function JobEditModal({
             <label className="block text-xs font-semibold text-[#1a1a1a]/60 mb-1">
               Job Preview Text
             </label>
-            <p className="text-[11px] text-[#1a1a1a]/40 mb-1.5">
-              Short summary shown on the careers grid. HTML supported (e.g. &lt;p&gt;, &lt;strong&gt;).
+            <p className="text-[11px] text-[#1a1a1a]/55 mb-1.5">
+              Short summary shown on the careers grid.
             </p>
-            <textarea
+            <RichTextEditor
               value={jobPreviewText}
-              onChange={(e) => setJobPreviewText(e.target.value)}
-              rows={4}
-              className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-2 text-[#1a1a1a] text-sm font-mono focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all resize-y"
+              onChange={setJobPreviewText}
+              placeholder="Short job description..."
+              minHeight="120px"
             />
           </div>
 
@@ -271,14 +272,14 @@ export default function JobEditModal({
             <label className="block text-xs font-semibold text-[#1a1a1a]/60 mb-1">
               Listing Content
             </label>
-            <p className="text-[11px] text-[#1a1a1a]/40 mb-1.5">
-              Full job description. HTML supported (e.g. &lt;h3&gt;, &lt;ul&gt;, &lt;li&gt;).
+            <p className="text-[11px] text-[#1a1a1a]/55 mb-1.5">
+              Full job description with headings, lists, and formatting.
             </p>
-            <textarea
+            <RichTextEditor
               value={listingContent}
-              onChange={(e) => setListingContent(e.target.value)}
-              rows={14}
-              className="w-full bg-[#f7f5f2] border border-[#e5e0db] rounded-lg px-3 py-2 text-[#1a1a1a] text-sm font-mono focus:outline-none focus:border-[#226666] focus:ring-2 focus:ring-[#226666]/10 transition-all resize-y"
+              onChange={setListingContent}
+              placeholder="Full job description..."
+              minHeight="360px"
             />
           </div>
         </div>

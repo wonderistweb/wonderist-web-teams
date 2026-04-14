@@ -3,12 +3,12 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
-      {/* Top bar with logo */}
-      <header className="border-b border-[#e5e0db] bg-white/95 backdrop-blur-md">
+      {/* Top bar: dark teal with white logo */}
+      <header className="bg-[#226666] border-b border-[#1a5252]">
         <div className="max-w-[70rem] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wond-teal.svg" alt="Wonderist Agency" className="h-7 w-auto" />
-          <span className="text-xs text-[#1a1a1a]/40 font-medium">
+          <img src="/wond-white.svg" alt="Wonderist Agency" className="h-7 w-auto" />
+          <span className="text-xs text-white/70 font-medium uppercase tracking-wider">
             Internal Tool
           </span>
         </div>
@@ -19,11 +19,8 @@ export default function HomePage() {
         <div className="w-full max-w-3xl">
           <div className="text-center mb-10">
             <h1 className="text-3xl sm:text-4xl font-bold text-[#1a1a1a] tracking-tight">
-              What would you like to manage?
+              Select Your WonderApp
             </h1>
-            <p className="text-sm text-[#1a1a1a]/50 mt-3">
-              Choose a section to get started
-            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -93,7 +90,8 @@ export default function HomePage() {
         </div>
       </main>
 
-      <footer className="py-6 text-center text-xs text-[#1a1a1a]/25">
+      {/* Footer: dark teal background */}
+      <footer className="bg-[#226666] text-white/80 py-4 text-center text-xs font-medium">
         Wonderist Agency &middot; Internal Tool
       </footer>
     </div>
