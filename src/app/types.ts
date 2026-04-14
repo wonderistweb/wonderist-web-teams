@@ -21,3 +21,21 @@ export interface UpdatePayload {
   mainHeadshotUrl?: string;
   hobbyHeadshotUrl?: string;
 }
+
+export interface JobListing {
+  id: string;
+  name: string;
+  slug: string;
+  active: boolean;
+  jobPreviewText: string;
+  listingContent: string;
+  applicationLink: string;
+  ripplingUrl: string;
+  crmId: string;
+  listingImage: { url: string; fileId: string; alt: string | null } | null;
+  isDraft: boolean;
+  isArchived: boolean;
+  createdOn: string;
+  lastUpdated: string;
+  lastPublished: string | null;
+}
