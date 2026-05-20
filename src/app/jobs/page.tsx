@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import JobsTable from "../components/JobsTable";
 import JobEditModal from "../components/JobEditModal";
 import AddJobModal from "../components/AddJobModal";
+import RichTextEditor from "../components/RichTextEditor";
 
 type FilterMode = "all" | "live" | "drafted";
 
@@ -16,6 +17,47 @@ export default function JobsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [syncStatus, setSyncStatus] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [whatToExpect, setWhatToExpect] = useState("");
+  const [whatToExpectOriginal, setWhatToExpectOriginal] = useState("");
+  const [whatToExpectOpen, setWhatToExpectOpen] = useState(false);
+  const [savingGlobal, setSavingGlobal] = useState(false);
+
+  const fetchGlobalContent = useCallback(async () => {
+    try {
+      const res = await fetch("/api/global-content");
+      const data = await res.json();
+      setWhatToExpect(data.whatToExpect || "");
+      setWhatToExpectOriginal(data.whatToExpect || "");
+    } catch (err) {
+      console.error("Failed to fetch global content:", err);
+    }
+  }, []);
+
+  const handleSaveGlobal = async () => {
+    setSavingGlobal(true);
+    setSyncStatus("Updating What to Expect...");
+    try {
+      const res = await fetch("/api/global-content", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatToExpect }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSyncStatus("What to Expect updated and published!");
+        setWhatToExpectOriginal(whatToExpect);
+      } else {
+        setSyncStatus(`Error: ${data.error || data.warning}`);
+      }
+    } catch (err) {
+      setSyncStatus(`Update failed: ${err}`);
+    } finally {
+      setSavingGlobal(false);
+      setTimeout(() => setSyncStatus(""), 4000);
+    }
+  };
+
+  const globalHasChanges = whatToExpect !== whatToExpectOriginal;
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -30,7 +72,7 @@ export default function JobsPage() {
     }
   }, []);
 
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => { fetchJobs(); fetchGlobalContent(); }, [fetchJobs, fetchGlobalContent]);
 
   const filteredJobs = useMemo(() => {
     if (filter === "live") return jobs.filter((j) => !j.isDraft);
@@ -179,6 +221,81 @@ export default function JobsPage() {
       </Header>
 
       <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-[70rem] mx-auto w-full">
+        {/* Global "What to Expect" section */}
+        <div className="mb-6 bg-white border border-[#e5e0db] rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setWhatToExpectOpen(!whatToExpectOpen)}
+            className="w-full flex items-center justify-between px-5 py-3 hover:bg-[#f7f5f2]/50 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-1 h-5 rounded-full bg-[#DE6D5E]" />
+              <div className="text-left">
+                <h2 className="text-sm font-bold text-[#1a1a1a]">
+                  &ldquo;What to Expect&rdquo; — Global Content
+                </h2>
+                <p className="text-xs text-[#1a1a1a]/50 mt-0.5">
+                  Appears on every job posting page above the job description
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {globalHasChanges && (
+                <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">
+                  Unsaved
+                </span>
+              )}
+              <svg
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                className={`text-[#1a1a1a]/40 transition-transform ${whatToExpectOpen ? "rotate-180" : ""}`}
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+          </button>
+
+          {whatToExpectOpen && (
+            <div className="px-5 pb-4 border-t border-[#e5e0db]">
+              <div className="pt-3">
+                <RichTextEditor
+                  value={whatToExpect}
+                  onChange={setWhatToExpect}
+                  placeholder="Enter the global 'What to Expect' content..."
+                  minHeight="200px"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2 mt-3">
+                {globalHasChanges && (
+                  <button
+                    onClick={() => { setWhatToExpect(whatToExpectOriginal); }}
+                    className="px-3 py-1.5 text-xs text-[#1a1a1a]/50 hover:text-[#1a1a1a] hover:bg-[#f0ece8] rounded-lg transition-colors font-medium"
+                  >
+                    Discard
+                  </button>
+                )}
+                <button
+                  onClick={handleSaveGlobal}
+                  disabled={!globalHasChanges || savingGlobal}
+                  className="px-4 py-1.5 text-xs bg-[#226666] hover:bg-[#1a5252] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  {savingGlobal ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save & Publish"
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Filter pills */}
         <div className="flex items-center gap-1.5 mb-4">
           <button
