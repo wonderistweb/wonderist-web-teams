@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { JobListing } from "../types";
+import { uploadToCloudinary } from "../lib/upload";
 import RichTextEditor from "./RichTextEditor";
 
 interface JobEditModalProps {
@@ -49,15 +50,9 @@ export default function JobEditModal({
   const uploadImage = async (file: File) => {
     setUploadingImage(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("memberName", name || "job-listing");
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.url) {
-        setImagePreview(data.url);
-        setPendingImageUrl(data.url);
-      }
+      const data = await uploadToCloudinary(file, name || "job-listing");
+      setImagePreview(data.url);
+      setPendingImageUrl(data.url);
     } catch (err) {
       console.error("Upload failed:", err);
     } finally {

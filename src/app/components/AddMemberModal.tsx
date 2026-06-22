@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { uploadToCloudinary } from "../lib/upload";
 
 interface AddMemberModalProps {
   onClose: () => void;
@@ -28,27 +29,10 @@ export default function AddMemberModal({ onClose, onAdd }: AddMemberModalProps) 
   const uploadImage = async (file: File, type: "main" | "hobby") => {
     const setUploading = type === "main" ? setUploadingMain : setUploadingHobby;
     setUploading(true);
-
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("memberName", name || "new-member");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (data.url) {
-        if (type === "main") {
-          setMainPreview(data.url);
-          setMainUrl(data.url);
-        } else {
-          setHobbyPreview(data.url);
-          setHobbyUrl(data.url);
-        }
-      }
+      const data = await uploadToCloudinary(file, name || "new-member");
+      if (type === "main") { setMainPreview(data.url); setMainUrl(data.url); }
+      else { setHobbyPreview(data.url); setHobbyUrl(data.url); }
     } catch (err) {
       console.error("Upload failed:", err);
     } finally {

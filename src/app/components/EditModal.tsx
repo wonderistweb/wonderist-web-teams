@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { TeamMember } from "../types";
+import { uploadToCloudinary } from "../lib/upload";
 
 interface EditModalProps {
   member: TeamMember;
@@ -33,15 +34,9 @@ export default function EditModal({ member, onClose, onSave, onRemove }: EditMod
     const setUploading = type === "main" ? setUploadingMain : setUploadingHobby;
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("memberName", member.name);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.url) {
-        if (type === "main") { setMainPreview(data.url); setPendingMainUrl(data.url); }
-        else { setHobbyPreview(data.url); setPendingHobbyUrl(data.url); }
-      }
+      const data = await uploadToCloudinary(file, member.name);
+      if (type === "main") { setMainPreview(data.url); setPendingMainUrl(data.url); }
+      else { setHobbyPreview(data.url); setPendingHobbyUrl(data.url); }
     } catch (err) { console.error("Upload failed:", err); }
     finally { setUploading(false); }
   };
