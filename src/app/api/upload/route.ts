@@ -19,21 +19,35 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
     const slug = (memberName || "team-member")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: "wonderist-team",
-      public_id: `${slug}-${Date.now()}`,
-      transformation: [
-        { width: 1000, crop: "limit" },
-        { quality: "auto", fetch_format: "webp" },
-      ],
-      format: "webp",
+    // Stream upload via buffer to avoid base64 size inflation
+    const result = await new Promise<{
+      secure_url: string;
+      public_id: string;
+      width: number;
+      height: number;
+    }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "wonderist-team",
+          public_id: `${slug}-${Date.now()}`,
+          transformation: [
+            { width: 1000, crop: "limit" },
+            { quality: "auto", fetch_format: "webp" },
+          ],
+          format: "webp",
+        },
+        (error, result) => {
+          if (error || !result) return reject(error || new Error("No result"));
+          resolve(result);
+        }
+      );
+      stream.end(buffer);
     });
 
     return NextResponse.json({
@@ -46,3 +60,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }
+
